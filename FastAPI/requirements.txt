@@ -1,0 +1,14 @@
+fastapi
+uvicorn
+sqlalchemy
+starlette
+email-validator
+python-jose
+passlib
+bcrypt
+python-dotenv
+python-multipart
+aiofiles
+
+# pip install -r requirements.txt
+# '-r' reads the contents of requirements.txt
