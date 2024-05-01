@@ -33,6 +33,11 @@ def get_db():
         # Returning the database connection that we just created.
         # Doing this using the "yield" keyword means that the database will not be closed too early.
         yield db
+    
+    except Exception:
+        db.rollback()
+        raise
+    
     finally:
         # The code following the yield statement will only be run once the read_all function finishes.
         db.close()
@@ -58,7 +63,7 @@ auth_dependency = Annotated[OAuth2PasswordRequestForm, Depends(OAuth2PasswordReq
 token_dependency = Annotated[str, Depends(OAuth2PasswordBearer(tokenUrl="auth/token"))]
 
 
-async def get_current_user(db: db_dependency, token: token_dependency):
+async def get_current_user(db: db_dependency, token: token_dependency) -> User:
     # Error catching in case token is invalid:
     try:
         # Attempting to decode the token using the secret key and algorithm:
@@ -93,7 +98,7 @@ def verify_admin_status(user) -> None:
         raise HTTPException(status_code=st.HTTP_401_UNAUTHORIZED, detail="Invalid Credentials")
 
 
-async def get_current_admin(token: token_dependency):
+async def get_current_admin(token: token_dependency) -> User:
     # Need to use await, since it is an async function:
     user = await get_current_user(token)
     verify_admin_status(user)

@@ -5,20 +5,21 @@ from models import User
 from security import bcrypt_context, create_access_token
 
 
-def authenticate_user(email: str, password: str, db: db_dependency) -> User:
-    # Searching for a user of the given id:
+def authenticate_user(db: db_dependency, email: str, password: str) -> User:
+    # Searching for a user of the given email:
     user = db.query(User).filter((User.email == email)).first()
+
     if user is None:
-        raise HTTPException(status_code=st.HTTP_404_NOT_FOUND, detail="User with this identifier is not found.")
+        raise HTTPException(status_code=st.HTTP_404_NOT_FOUND, detail="A user with this email does not exist.")
     elif not bcrypt_context.verify(password, user.password):
-        raise HTTPException(status_code=st.HTTP_401_UNAUTHORIZED, detail="Email or password incorrect")
+        raise HTTPException(status_code=st.HTTP_401_UNAUTHORIZED, detail="The email or password is incorrect.")
     return user
 
 
-def login_and_generate_token(user_input: auth_dependency, db: db_dependency) -> dict:
-    # user_input is of type OAuth2PasswordRequestForm, so it has attributes username and password.
+def login_and_generate_token(db: db_dependency, auth_form: auth_dependency) -> dict:
+    # auth_form is of type OAuth2PasswordRequestForm, so it has attributes username and password.
     # In this case, username represents the user's email:
-    user = authenticate_user(user_input.username, user_input.password, db)
+    user = authenticate_user(db, auth_form.username, auth_form.password)
 
     # If the execution reaches this point, we know user is not None.
     token = create_access_token(user.id)

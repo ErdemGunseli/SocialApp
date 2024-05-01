@@ -1,5 +1,5 @@
 {
-  "image_directory": "post_images",
+  "image_directory": "images",
   "image_mime_types": ["image/jpeg", "image/png", "image/gif", "image/webp", "image/svg+xml", "image/bmp"],
   "cors_origins": []
 }

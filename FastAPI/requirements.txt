@@ -9,6 +9,7 @@ bcrypt
 python-dotenv
 python-multipart
 aiofiles
+slowapi
 
 # pip install -r requirements.txt
 # '-r' reads the contents of requirements.txt

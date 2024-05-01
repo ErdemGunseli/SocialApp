@@ -1,7 +1,7 @@
 import os
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
-from fastapi import File, UploadFile, HTTPException
+from fastapi import File, UploadFile
 from passlib.context import CryptContext
 from jose import jwt
 
@@ -22,8 +22,8 @@ TOKEN_TTL = timedelta(minutes=int(os.getenv("TOKEN_TTL")))
 
 
 def create_access_token(user_id: int, ttl: timedelta = TOKEN_TTL) -> str:
-    expiry = datetime.utcnow() + ttl
-
+    expiry = datetime.now(timezone.utc) + ttl
+    
     # The payload is the data that we want to encode within the token.
     # Tokens will be used by the server to understand which user is making the requests.
     # "sub" stands for the subject, and should be unique.

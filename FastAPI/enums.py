@@ -6,12 +6,11 @@ class Role(Enum):
     USER = "user"
 
 
+class Order(Enum):
+    POPULARITY = "popularity"
+    DATE = "date"
+
+
 class VoteType(Enum):
     UP = "up"
     DOWN = "down"
-
-
-class VoteAction(Enum):
-    ADDED ="added"
-    CHANGED = "changed"
-    DELETED = "deleted"

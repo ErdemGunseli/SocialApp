@@ -1,39 +1,35 @@
 import os
-import uuid
 from typing import List
 
-import aiofiles
-from sqlalchemy.exc import SQLAlchemyError
 from fastapi import HTTPException, File, UploadFile, status as st
 
 from dependencies import db_dependency, user_dependency
-from schemas import CreatePostRequest
+from schemas import CreatePostRequest, UpdatePostRequest
 from models import Post, Image, Vote
 from security import check_for_malware
-from enums import VoteType, VoteAction
+from enums import VoteType, Order
 from config import read_config
+from services.utils import order_query
+from services.image_service import create_image
 
 
-# The directory where the images for posts are saved (called when the module is imported from main):
-IMAGE_DIRECTORY = read_config("image_directory")
-
-# The image MIME (content) types that are allowed:
-IMAGE_MIME_TYPES = read_config("image_mime_types")
+def verify_post_ownership(user: user_dependency, post: Post) -> None:
+    if post.user_id != user.id:
+        raise HTTPException(status_code=st.HTTP_403_FORBIDDEN, detail="Access unauthorized")
 
 
-def create_post(request: CreatePostRequest, user: user_dependency, db: db_dependency) -> Post:
-
+def create_post(db: db_dependency, user: user_dependency, post_data: CreatePostRequest) -> Post:
     # If the post is in response to another, ensuring that it exists:
-    if request.response_to is not None: get_post(request.response_to, db)
+    if post_data.response_to is not None: get_post(db, post_data.response_to)
 
-    new_post = Post(**request.dict(), user_id=user.id)
+    new_post = Post(**post_data.dict(), user_id=user.id)
     db.add(new_post)
     db.commit()
     db.refresh(new_post)
     return new_post
 
 
-def get_post(post_id: int, db: db_dependency) -> Post:
+def get_post(db: db_dependency, post_id: int) -> Post:
     # Retrieving the post based on its ID:
     post = db.query(Post).filter(Post.id == post_id).first()
 
@@ -42,144 +38,113 @@ def get_post(post_id: int, db: db_dependency) -> Post:
     return post
 
 
-def get_all_posts(db: db_dependency) -> List[Post]:
-    # Returning a list is a synchronous operation so not calling with await:
-    # Since the contents of this function are synchronous, the function itself is not async:
-    return db.query(Post).all()
+def get_posts(db: db_dependency, user_id: int = None, title: str = None, response_to: int = None, order_by: Order = Order.DATE, show_comments=False) -> list[Post]:
+    query = db.query(Post)
+
+    if user_id: query = query.filter(Post.user_id == user_id)
+    # The 'ilike' function allows for case insensitive search, and the '%' signs are wildcards:
+    if title: query = query.filter(Post.title.ilike(f"%{title}%"))
+    if response_to: query = query.filter(Post.response_to == response_to)
+    if not show_comments: query = query.filter(Post.response_to == None)
+
+    return order_query(query, order_by).all()
 
 
-def check_post_ownership(post: Post, user: user_dependency):
-    if post.user_id != user.id:
-        raise HTTPException(status_code=st.HTTP_403_FORBIDDEN, detail="Access unauthorized")
+def update_post(db: db_dependency,user: user_dependency, post_id: int, post_data: UpdatePostRequest):
+    post = db.query(Post).filter(Post.id == post_id).first()
+    verify_post_ownership(user, post)
 
+    for key, value in post_data.dict().items():
+        setattr(post, key, value)
 
-async def create_image(post_id: int, user: user_dependency, db: db_dependency, image: UploadFile = File(...)) -> dict: 
-    image_path = ""
-    
-    # Checking if the uploaded file is an allowed image type:
-    if image.content_type not in IMAGE_MIME_TYPES:
-        await image.close()  # Close the file to clean up resources
-        raise HTTPException(status_code=st.HTTP_400_BAD_REQUEST, detail="Unsupported file type.")
-
-    # Ensuring that the post exists and belongs to the currently logged in user:
-    post = get_post(post_id, db)
-    check_post_ownership(post, user)
-
-    try:    
-        # Generating a universally unique ID for the image file name:
-        image_uuid = uuid.uuid4()
-
-        # os.path.splittext splits the string into two parts (before and after the last dot):
-        extension = os.path.splitext(image.filename)[1]
-        image_path = os.path.join(IMAGE_DIRECTORY, f"{image_uuid}{extension}")
-
-        # Checking for malware in the image file:
-        check_for_malware(image)
-
-        # "wb" is for writing in binary mode, aiofiles allows async operations:
-        async with aiofiles.open(image_path, "wb") as saved_image:
-            # await is used to not block the event loop when calling async functions:
-            content = await image.read()
-            await saved_image.write(content)
-
-        new_image = Image(uuid=image_uuid, post_id=post_id, path=image_path)
-        db.add(new_image)
-        db.commit()
-    
-        # Returning a relative path:
-        return {"path": image_path}
-    
-    except Exception as e:
-        print(f"Error saving image: {e}")
-
-        db.rollback()
-        # Deleting the image file if it exists:
-        if os.path.exists(image_path): os.remove(image_path)
-
-        # Raising the exception again to be caught by the exception handler (HTTP Exception returned to the client):
-        raise
-
-    finally:
-        await image.close()
-    
-
-
-
-def delete_post(post_id: int, user: user_dependency, db: db_dependency) -> None:
-    post = get_post(post_id, db)
-    check_post_ownership(post, user)
-    
-    # Important that this is called before deleting the post:
-    delete_post_images(post)
-    db.delete(post)
     db.commit()
 
 
-def delete_post_images(post: Post) -> None:
+def delete_post(db: db_dependency, user: user_dependency, post_id: int) -> None:
+    post = get_post(db, post_id)
+    verify_post_ownership(user, post)
+    
+    # Only deleting the images themselves, not the database records (which are cascade deleted):
     try:
         for image in post.images:
             # If the image exists, deleting it:
             if os.path.exists(image.path): os.remove(image.path)
     except Exception as e:
-        print(f"Failed to delete one or more image files: {e}")    
+        print(f"Failed to delete one or more image files: {e}")      
+
+    db.delete(post)
+    db.commit()
 
 
-def vote(post_id: int, vote_type: VoteType, user: user_dependency, db: db_dependency) -> dict:
+async def create_post_image(db: db_dependency, user: user_dependency, post_id: int, image: UploadFile = File(...)) -> Image:
+    path = await create_image(image)
+    post = get_post(post_id)
+    verify_post_ownership(user, post)
 
-    post = get_post(post_id, db)
-    existing_vote = db.query(Vote).filter((Vote.post_id == post_id) & (Vote.user_id == user.id)).first()
-    action = None
+    image_record = Image(post_id=post_id, path=path)
+    db.add(image_record)
+    db.commit()
+
+    return image_record
+
+
+def get_post_images(db: db_dependency, post_id) -> List[Image]:
+    return db.query(Post).filter(Post.id == post_id).first().images
+
+
+def delete_post_image(db: db_dependency, user: user_dependency, post_id: int, image_path: str) -> None:
+    post = get_post(db, post_id)
+    verify_post_ownership(user, post)
+
+    image = db.query(Image).filter(Image.path == image_path).first()
+    if image is None: raise HTTPException(status_code=st.HTTP_404_NOT_FOUND, detail="Image not found")
 
     try:
-        if existing_vote:
-            vote_id = existing_vote.id
-            
-            if existing_vote.vote_type == vote_type:
-                # If the vote type is the same, deleting it and decreasing counter:
-                db.delete(existing_vote)
-                action = VoteAction.DELETED
+        db.delete(image)
+        db.commit()
 
-                if vote_type == VoteType.UP: post.upvote_count -= 1
-                else: post.downvote_count -= 1
+        # If the image exists, deleting it:
+        if os.path.exists(image_path): os.remove(image.path)
+    except Exception as e:
+        print(f"Failed to delete one or more image files: {e}")  
+        raise
 
-            else:
-                # If it is the opposite vote type, changing it, updating counters:
-                existing_vote.vote_type = vote_type
-                action = VoteAction.CHANGED
 
-                if vote_type == VoteType.UP:
-                    # If the vote was down and changed to up:
-                    post.upvote_count += 1
-                    post.downvote_count -= 1
-                else:
-                    post.upvote_count -= 1
-                    post.downvote_count += 1
+def vote(db: db_dependency, user: user_dependency, post_id: int, vote_type: VoteType) -> Post:
 
-            db.commit()  
+    post = get_post(db, post_id)
+    existing_vote = db.query(Vote).filter((Vote.post_id == post_id) & (Vote.user_id == user.id)).first()
+
+    if existing_vote:
+        
+        if existing_vote.vote_type == vote_type:
+            # If the vote type is the same, deleting it and decreasing counter:
+            db.delete(existing_vote)
+
+            if vote_type == VoteType.UP: post.upvote_count -= 1
+            else: post.downvote_count -= 1
 
         else:
-            # Creating a new vote and increasing the relevant counter by 1:
-            # Need to use a new variable since DB objects are assigned by reference:
-            new_vote = Vote(post_id=post_id, user_id=user.id, vote_type=vote_type)
-            db.add(new_vote)
-            db.commit()
-            db.refresh(new_vote)
-            vote_id = new_vote.id
-            action = VoteAction.ADDED
+            # If it is the opposite vote type, changing it, updating counters:
+            existing_vote.vote_type = vote_type
 
-            if vote_type == VoteType.UP: post.upvote_count += 1
-            else: post.downvote_count += 1
+            if vote_type == VoteType.UP:
+                # If the vote was down and changed to up:
+                post.upvote_count += 1
+                post.downvote_count -= 1
+            else:
+                post.upvote_count -= 1
+                post.downvote_count += 1
 
-            db.commit()
+    else:
+        # Creating a new vote and increasing the relevant counter by 1:
+        # Need to use a new variable since DB objects are assigned by reference:
+        new_vote = Vote(post_id=post_id, user_id=user.id, vote_type=vote_type)
+        db.add(new_vote)
 
-        return {
-                "id": vote_id,
-                "vote_type": vote_type,
-                "action": action,
-                "upvote_count": post.upvote_count,
-                "downvote_count": post.downvote_count
-                }
-
-    except SQLAlchemyError as e:
-        db.rollback()
-        raise e
+        if vote_type == VoteType.UP: post.upvote_count += 1
+        else: post.downvote_count += 1
+    
+    db.commit()
+    db.refresh(post)
+    return post
