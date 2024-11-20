@@ -1,6 +1,6 @@
 from typing import Annotated, Optional
 
-from fastapi import Depends, HTTPException, status as st
+from fastapi import Depends, status as st
 from fastapi.security import OAuth2PasswordRequestForm, OAuth2PasswordBearer
 from sqlalchemy.orm import Session
 from jose import jwt, JWTError
@@ -9,6 +9,8 @@ from database import SessionLocal
 from models import User
 from security import HASH_SECRET_KEY, HASH_ALGORITHM
 from enums import Role
+from exceptions import JWTDecodeError, InvalidCredentialsError, UserNotFoundError
+
 
 # The following is a generator function - a special function that uses the yield keyword instead of return.
 # Typically, generators are used to create iterators which produce a series of values,
@@ -75,27 +77,36 @@ async def get_current_user(db: db_dependency, token: token_dependency) -> User:
         user_id: Optional[int] = int(payload.get("sub"))
 
     except JWTError as e:
-        raise HTTPException(status_code=st.HTTP_401_UNAUTHORIZED, detail="Error When Decoding JWT") from e
-    if user_id is None: raise HTTPException(status_code=st.HTTP_401_UNAUTHORIZED, detail="Invalid Credentials")
+        raise JWTDecodeError() from e
+    if user_id is None:
+        raise InvalidCredentialsError
     return get_user(user_id, db)
 
 
 def get_user(user_id, db: db_dependency) -> User:
-    user = db.query(User).filter(User.id == user_id).first()
+    user = db.query(User).filter_by(id=user_id).first()
     if user is None:
-        raise HTTPException(status_code=st.HTTP_404_NOT_FOUND, detail="User not found")
+        raise UserNotFoundError
     return user
 
-
 user_dependency = Annotated[dict, Depends(get_current_user)]
+
+
+async def optional_get_current_user(db: db_dependency, token: Optional[str] = Depends(OAuth2PasswordBearer(tokenUrl="auth/token", auto_error=False))) -> Optional[User]:
+    if token is None:
+        return None
+    return await get_current_user(db, token)
+
+# Used if authentication is optional, but allows additional data to be returned with a request:
+optional_user_dependency = Annotated[Optional[dict], Depends(optional_get_current_user)]
 
 
 def verify_admin_status(user) -> None:
     # When interacting with the database models, we can use the enum directly, since the columns are of type Enum.
     # JWTs require all data to be JSON serializable, so we passed enum.value (the string equivalent of the enum).
     # Therefore, we need to compare it with enum.value:
-    if user is None or user.get("role") != Role.ADMIN.value:
-        raise HTTPException(status_code=st.HTTP_401_UNAUTHORIZED, detail="Invalid Credentials")
+    if user is None or user.role != Role.ADMIN.value:
+        raise InvalidCredentialsError
 
 
 async def get_current_admin(token: token_dependency) -> User:

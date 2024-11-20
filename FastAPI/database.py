@@ -11,8 +11,7 @@ from sqlalchemy.orm import sessionmaker
 # The data models will inherit from this class.
 from sqlalchemy.ext.declarative import declarative_base
 
-# Only network-based RDBMS require superusers. SQLite is file based:
-# TODO: Switch to postgres and make db related functions async, and await when calling (AsyncSession)
+# TODO: Use AsyncSession, make DB functions async, and await when calling
 import os
 DB_URI = os.getenv("DB_URI")
 

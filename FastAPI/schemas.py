@@ -1,9 +1,10 @@
 import datetime
-from typing import Optional
+from typing import Optional, List
 
 from pydantic import BaseModel, Field, EmailStr
 
 from enums import Role, VoteType
+
 
 
 class CreateUserRequest(BaseModel):
@@ -22,16 +23,35 @@ class UpdateUserPasswordRequest(BaseModel):
     new_password: str = Field(min_length=6, max_length=100)
 
 
+
+class ImageResponse(BaseModel):
+    url: str
+
+    @classmethod
+    def from_orm(cls, image):
+        return cls(url=image.full_url)
+
+    class Config:
+        from_attributes = True
+
+
 class UserResponse(BaseModel):
     id: int
     name: str
+
+    # Including this (even though it is not a part of the user record)
+    # to reduce the number of API calls:
+    profile_image: Optional[ImageResponse] = None
+
+    class Config:
+        from_attributes = True
+
+
+class PrivateUserResponse(UserResponse):
+    # Only used for the endpoint that returns the currently logged in user:
+
     email: EmailStr
     role: Role
-
-    # Pydantic models normally expect data in the form of dictionaries.
-    # We have objects, so setting ORM mode to true:
-    # In Pydantic version 2, "orm_mode" has been renamed to "from_attributes"
-    class Config: from_attributes = True
 
 
 class TokenResponse(BaseModel):
@@ -46,13 +66,14 @@ class CreatePostRequest(BaseModel):
     title: Optional[str] = Field(max_length=1000)
     body: str = Field(max_length=5000)
     # None is the default value:
-    response_to: Optional[int] = None
+    parent_id: Optional[int] = None
 
 
 class UpdatePostRequest(BaseModel):
-    # The response_to field cannot be updated:
+    # The parent_id field cannot be updated:
     title: Optional[str] = Field(max_length=1000)
     body: str = Field(max_length=5000)
+
 
 
 class PostResponse(BaseModel):
@@ -60,23 +81,34 @@ class PostResponse(BaseModel):
     user_id: int
     title: Optional[str]
     body: str
-    response_to: Optional[int]
+
+    parent_id: Optional[int]
+    comment_count: int
+    # Using a string to be able to refer to the class before it is defined:
+    comments: Optional[List["PostResponse"]]
+
     upvote_count: int
     downvote_count: int
     created_at: datetime.datetime
 
-    class Config: from_attributes = True
+    # The images associated to the post:
+    images: List[ImageResponse]
 
+    # Returning the details of the author to reduce the number of API calls:
+    author: UserResponse
 
-class ImageResponse(BaseModel):
-    path: str
+    current_user_vote: Optional[VoteType] = None
+
+    class Config: 
+        from_attributes = True
 
 
 class CreateVoteRequest(BaseModel):
-    # post_id and user_id obtained from path param and dependency
+    # post_id and user_id obtained from url param and dependency
     type: VoteType
 
 
 class VoteResponse(BaseModel):
+    current_user_vote: Optional[VoteType] = None
     upvote_count: int
     downvote_count: int

@@ -1,12 +1,12 @@
 import os
 import uuid
+from PIL import Image, ImageOps
 
-import aiofiles
-from fastapi import HTTPException, File, UploadFile, status as st
+from fastapi import File, UploadFile
 
 from security import check_for_malware
 from config import read_config
-
+from exceptions import UnsupportedFileTypeError, UnableToProcessInputError
 
 # The directory where the images for posts are saved (ran when the module is imported from main):
 IMAGE_DIRECTORY = read_config("image_directory")
@@ -14,43 +14,54 @@ IMAGE_DIRECTORY = read_config("image_directory")
 # The image MIME (content) types that are allowed:
 IMAGE_MIME_TYPES = read_config("image_mime_types")
 
+# Maximum dimension for compressed images:
+COMPRESSION_DIMENSION = read_config("compression_size")
+
+
+def save_file(upload_file: UploadFile) -> str:
+    # Generating a unique filename for the uploaded file:
+    file_uuid = uuid.uuid4()
+    file_url = os.path.join(IMAGE_DIRECTORY, f"{file_uuid}{os.path.splitext(upload_file.filename)[1]}")
+
+    with open(file_url, "wb") as file_object:
+        file_object.write(upload_file.file.read())
+
+    return file_url
+
+
+def compress_image(url: str) -> str:
+    img = Image.open(url)
+    
+    # Automatically correcting the orientation from EXIF data:
+    img = ImageOps.exif_transpose(img)
+    
+    # Resizing the image while preserving the aspect ratio:
+    img.thumbnail((COMPRESSION_DIMENSION, COMPRESSION_DIMENSION))
+    
+    img.save(url, optimize=True)
+
+    return url
+
 
 async def create_image(image: UploadFile = File(...)) -> str: 
-    image_path = ""
     
-    # Checking if the uploaded file is of an allowed image type:
-    if image.content_type not in IMAGE_MIME_TYPES:
-        await image.close()  # Close the file to clean up resources
-        raise HTTPException(status_code=st.HTTP_400_BAD_REQUEST, detail="Unsupported file type")
-
-    # Generating a universally unique ID for the image file name:
-    image_uuid = uuid.uuid4()
-
-    # os.path.splittext splits the string into two parts (before and after the last dot):
-    extension = os.path.splitext(image.filename)[1]
-    image_path = os.path.join(IMAGE_DIRECTORY, f"{image_uuid}{extension}")
-
     try:    
+        # Checking if the uploaded file is of an allowed image type:
+        if image.content_type not in IMAGE_MIME_TYPES:
+            raise UnsupportedFileTypeError()
+
+        # Saving the image:
+        url = save_file(image)
+
         # Checking for malware in the image file:
         check_for_malware(image)
 
-        # "wb" is for writing in binary mode, aiofiles allows async operations:
-        async with aiofiles.open(image_path, "wb") as saved_image:
-            # await is used to not block the event loop when calling async functions:
-            content = await image.read()
-            await saved_image.write(content)
+        # Compressing the image:
+        url = compress_image(url)
 
-        return image_path
+        return url
     
     except Exception as e:
-        print(f"Error saving image: {e}")
+        print(f"Error occurred: {e}")
 
-        # Deleting the image file if it exists:
-        if os.path.exists(image_path): os.remove(image_path)
-
-        # Commits and rollbacks are handled in the context manager.
-        # Raising the exception again to be caught by the exception handler (HTTP Exception returned to the client):
-        raise e
-
-    finally:
-        await image.close()
+        raise UnableToProcessInputError() from e

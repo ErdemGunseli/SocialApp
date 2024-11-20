@@ -1,12 +1,13 @@
 import os
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 from slowapi.util import get_remote_address
 from dotenv import load_dotenv
+
 
 # Loading environment variables before local imports:
 load_dotenv()
@@ -17,7 +18,10 @@ app = FastAPI()
 # Rate limiting with SlowAPI:
 # key_func kwarg takes in a function that returns a unique key for the client (here we are using a function to get the IP address):
 # default_limits apply to all endpoints unless overridden by a decorator.
-limiter = Limiter(key_func=get_remote_address, default_limits=["3/second", "120/minute"])
+
+# Turning off rate limits for testing, 
+# FIXME: TURN RATE LIMITS BACK ON
+limiter = Limiter(key_func=get_remote_address, default_limits=["10/second"])
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
@@ -26,7 +30,6 @@ from routers import auth, posts, users
 from config import read_config
 from database import engine
 import models
-
 
 # Creating all the tables represented by the models using the engine.
 # The database URL was used when creating the engine.
@@ -65,9 +68,17 @@ app.add_middleware(CORSMiddleware, allow_origins=origins, allow_credentials=True
 # alembic upgrade <revision#> - applies the migration to the db.
 # alembic downgrade <revision#> - rolls back the migration.
 
+# TODO: CAPTCHA for user creation
+
 
 """
+1) Run the backend:
 cd FastAPI
 source venv/bin/activate
 uvicorn main:app --reload
+
+
+2) Run the Postman Collection (on a new terminal):
+cd FastAPI/postman
+newman run collections/postman_collection.json --environment environments/postman_environment.json --reporters cli
 """

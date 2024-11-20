@@ -1,5 +1,6 @@
 {
+  "cors_origins": ["http://localhost:3000"],
   "image_directory": "images",
   "image_mime_types": ["image/jpeg", "image/png", "image/gif", "image/webp", "image/svg+xml", "image/bmp"],
-  "cors_origins": []
+  "compression_size": 1000
 }

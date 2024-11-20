@@ -1,0 +1,2569 @@
+{
+	"info": {
+		"_postman_id": "c63de313-322e-4440-b937-fb9f7a59e159",
+		"name": "Social App API",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "34699704"
+	},
+	"item": [
+		{
+			"name": "User",
+			"item": [
+				{
+					"name": "Create User",
+					"item": [
+						{
+							"name": "Create User (201)",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Response status code is 201\", function () {",
+											"    pm.response.to.have.status(201);",
+											"});",
+											"",
+											"// Saving the name, email and password values from the request:",
+											"const request_data = JSON.parse(pm.request.body.raw);",
+											"pm.collectionVariables.set(\"name\", request_data.name);",
+											"pm.collectionVariables.set(\"email\", request_data.email);",
+											"pm.collectionVariables.set(\"password\", request_data.password);",
+											"",
+											"// Saving the ID and role from the response:",
+											"const response = pm.response.json();",
+											"pm.collectionVariables.set(\"user_id\", response.id);",
+											"pm.collectionVariables.set(\"role\", response.role);",
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"name\": \"{{$randomFirstName}}\",\n    \"email\": \"{{$randomExampleEmail}}\",\n    \"password\": \"{{$randomPassword}}\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{base_url}}/user/",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"user",
+										""
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Create User (422)",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Response status code is 422\", function () {",
+											"    pm.response.to.have.status(422);",
+											"});"
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"name\": \"{{$randomFirstName}}\",\n    \"email\": \"{{$randomExampleEmail}}\",\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{base_url}}/user/",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"user",
+										""
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Login and Generate Token",
+					"item": [
+						{
+							"name": "Login and Generate Token (200)",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Response status code is 200\", function () {",
+											"    pm.response.to.have.status(200);",
+											"});",
+											"",
+											"// Using the returned value in the access token:",
+											"const response = pm.response.json();",
+											"pm.environment.set(\"access_token\", response.access_token);",
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "urlencoded",
+									"urlencoded": [
+										{
+											"key": "username",
+											"value": "{{email}}",
+											"type": "text"
+										},
+										{
+											"key": "password",
+											"value": "{{password}}",
+											"type": "text"
+										}
+									]
+								},
+								"url": {
+									"raw": "{{base_url}}/auth/token/",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"auth",
+										"token",
+										""
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Login and Generate Token (401)",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Response status code is 401\", function () {",
+											"    pm.response.to.have.status(401);",
+											"});",
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "urlencoded",
+									"urlencoded": [
+										{
+											"key": "username",
+											"value": "{{email}}",
+											"type": "text"
+										},
+										{
+											"key": "password",
+											"value": "string",
+											"type": "text"
+										}
+									]
+								},
+								"url": {
+									"raw": "{{base_url}}/auth/token/",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"auth",
+										"token",
+										""
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Login and Generate Token (404)",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Response status code is 404\", function () {",
+											"    pm.response.to.have.status(404);",
+											"});",
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "urlencoded",
+									"urlencoded": [
+										{
+											"key": "username",
+											"value": "string",
+											"type": "text"
+										},
+										{
+											"key": "password",
+											"value": "string",
+											"type": "text"
+										}
+									]
+								},
+								"url": {
+									"raw": "{{base_url}}/auth/token/",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"auth",
+										"token",
+										""
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Login and Generate Token (422)",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Response status code is 422\", function () {",
+											"    pm.response.to.have.status(422);",
+											"});",
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "urlencoded",
+									"urlencoded": [
+										{
+											"key": "username",
+											"value": "{{email}}",
+											"type": "text"
+										}
+									]
+								},
+								"url": {
+									"raw": "{{base_url}}/auth/token/",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"auth",
+										"token",
+										""
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Read User",
+					"item": [
+						{
+							"name": "Read User (200)",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Response status code is 200\", function () {",
+											"    pm.response.to.have.status(200);",
+											"});"
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/user/:user_id",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"user",
+										":user_id"
+									],
+									"variable": [
+										{
+											"key": "user_id",
+											"value": "{{user_id}}"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Read User (422)",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Response status code is 422\", function () {",
+											"    pm.response.to.have.status(422);",
+											"});"
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/user/:user_id",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"user",
+										":user_id"
+									],
+									"variable": [
+										{
+											"key": "user_id",
+											"value": ""
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Read User (404)",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Response status code is 404\", function () {",
+											"    pm.response.to.have.status(404);",
+											"});"
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/user/:user_id",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"user",
+										":user_id"
+									],
+									"variable": [
+										{
+											"key": "user_id",
+											"value": "0"
+										}
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Read Current User",
+					"item": [
+						{
+							"name": "Read Current User (200)",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"const response = pm.response.json();",
+											"",
+											"pm.test(\"Response status code is 200\", function () {",
+											"    pm.response.to.have.status(200);",
+											"});",
+											"",
+											"pm.test(\"Response details are the same as the current user\", function() {",
+											"    pm.expect(response.id).to.eql(pm.collectionVariables.get(\"user_id\"))",
+											"    pm.expect(response.name).to.eql(pm.collectionVariables.get(\"name\"))",
+											"    pm.expect(response.email).to.eql(pm.collectionVariables.get(\"email\"))",
+											"    pm.expect(response.role).to.eql(pm.collectionVariables.get(\"role\"))",
+											"})"
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/user/",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"user",
+										""
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Read Current User (401)",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Response status code is 401\", function () {",
+											"    pm.response.to.have.status(401);",
+											"});",
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "noauth"
+								},
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/user/",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"user",
+										""
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Update User",
+					"item": [
+						{
+							"name": "Update User (204)",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Response status code is 204\", function () {",
+											"    pm.response.to.have.status(204);",
+											"});",
+											"",
+											"// Saving the name and email values from the request:",
+											"const request_data = JSON.parse(pm.request.body.raw);",
+											"pm.collectionVariables.set(\"name\", request_data.name);",
+											"pm.collectionVariables.set(\"email\", request_data.email);"
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"method": "PUT",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"name\": \"{{$randomFirstName}}\",\n    \"email\": \"{{$randomExampleEmail}}\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{base_url}}/user/",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"user",
+										""
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Update User (401)",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Response status code is 401\", function () {",
+											"    pm.response.to.have.status(401);",
+											"});",
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "noauth"
+								},
+								"method": "PUT",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"name\": \"{{$randomFirstName}}\",\n    \"email\": \"{{$randomExampleEmail}}\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{base_url}}/user/",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"user",
+										""
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Update User (422)",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Response status code is 422\", function () {",
+											"    pm.response.to.have.status(422);",
+											"});",
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"method": "PUT",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"name\": \"{{$randomFirstName}}\"\n    }",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{base_url}}/user/",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"user",
+										""
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Update User Password",
+					"item": [
+						{
+							"name": "Update User Password (204)",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Response status code is 204\", function () {",
+											"    pm.response.to.have.status(204);",
+											"});",
+											"",
+											"// Saving the password value from the request:",
+											"const request_data = JSON.parse(pm.request.body.raw);",
+											"pm.collectionVariables.set(\"password\", request_data.new_password);"
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"method": "PUT",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"old_password\": \"{{password}}\",\n    \"new_password\": \"{{$randomPassword}}\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{base_url}}/user/password",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"user",
+										"password"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Update User Password (401)",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Response status code is 401\", function () {",
+											"    pm.response.to.have.status(401);",
+											"});"
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "noauth"
+								},
+								"method": "PUT",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"old_password\": \"{{password}}\",\n    \"new_password\": \"{{$randomPassword}}\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{base_url}}/user/password",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"user",
+										"password"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Update User Password (422)",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Response status code is 422\", function () {",
+											"    pm.response.to.have.status(422);",
+											"});",
+											"",
+											"// Saving the password value from the request:",
+											"const request_data = JSON.parse(pm.request.body.raw);",
+											"pm.collectionVariables.set(\"password\", request_data.new_password);"
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"method": "PUT",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"old_password\": \"{{password}}\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{base_url}}/user/password",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"user",
+										"password"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Create Profile Image",
+					"item": [
+						{
+							"name": "Create Profile Image (200)",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Response status code is 200\", function () {",
+											"  pm.expect(pm.response.to.have.status(200));",
+											"});",
+											"",
+											"const response = pm.response.json();",
+											"pm.collectionVariables.set(\"profile_image_path\", response.path)"
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "formdata",
+									"formdata": [
+										{
+											"key": "image",
+											"type": "file",
+											"src": "/Users/erdem/Documents/GitHub/SocialApp/FastAPI/postman/data/appleton.jpeg"
+										}
+									]
+								},
+								"url": {
+									"raw": "{{base_url}}/user/profile",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"user",
+										"profile"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Create Profile Image (401)",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Response status code is 401\", function () {",
+											"  pm.expect(pm.response.to.have.status(401));",
+											"});"
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "noauth"
+								},
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "formdata",
+									"formdata": [
+										{
+											"key": "image",
+											"type": "file",
+											"src": "/Users/erdem/Documents/GitHub/SocialApp/FastAPI/tests/data/appleton.jpeg"
+										}
+									]
+								},
+								"url": {
+									"raw": "{{base_url}}/user/profile",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"user",
+										"profile"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Create Profile Image (422)",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Response status code is 422\", function () {",
+											"  pm.expect(pm.response.to.have.status(422));",
+											"});"
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "formdata",
+									"formdata": []
+								},
+								"url": {
+									"raw": "{{base_url}}/user/profile",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"user",
+										"profile"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Read Profile Image",
+					"item": [
+						{
+							"name": "Read Profile Image (200)",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Response status code is 200\", function () {",
+											"    pm.response.to.have.status(200);",
+											"});",
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/user/:user_id/profile",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"user",
+										":user_id",
+										"profile"
+									],
+									"variable": [
+										{
+											"key": "user_id",
+											"value": "{{user_id}}"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Read Profile Image (404)",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Response status code is 404\", function () {",
+											"    pm.response.to.have.status(404);",
+											"});",
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/user/:user_id/profile",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"user",
+										":user_id",
+										"profile"
+									],
+									"variable": [
+										{
+											"key": "user_id",
+											"value": "0"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Read Profile Image (422)",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Response status code is 422\", function () {",
+											"    pm.response.to.have.status(422);",
+											"});",
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/user/:user_id/profile",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"user",
+										":user_id",
+										"profile"
+									],
+									"variable": [
+										{
+											"key": "user_id",
+											"value": ""
+										}
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Delete Profile Image",
+					"item": [
+						{
+							"name": "Delete Profile Image (204)",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Response status code is 204\", function () {",
+											"    pm.response.to.have.status(204);",
+											"});",
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"method": "DELETE",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/user/profile",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"user",
+										"profile"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Delete Profile Image (401)",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Response status code is 401\", function () {",
+											"    pm.response.to.have.status(401);",
+											"});",
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "noauth"
+								},
+								"method": "DELETE",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/user/profile",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"user",
+										"profile"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Delete Profile Image (404)",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"// The endpoint will now return 404 since the image has already been deleted:",
+											"pm.test(\"Response status code is 404\", function () {",
+											"    pm.response.to.have.status(404);",
+											"});",
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"method": "DELETE",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/user/profile",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"user",
+										"profile"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				}
+			],
+			"description": "Contains requests to endpoints in the user router"
+		},
+		{
+			"name": "Post",
+			"item": [
+				{
+					"name": "Create Post",
+					"item": [
+						{
+							"name": "Create Post (201)",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Response status code is 201\", function () {",
+											"    pm.response.to.have.status(201);",
+											"});",
+											"",
+											"// Saving the last post ID and role from the response:",
+											"const response = pm.response.json();",
+											"pm.collectionVariables.set(\"last_post_id\", response.id);",
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"title\": \"{{$randomCity}}\",\n    \"body\": \"{{$randomCity}}\",\n    \"response_to\": null\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{base_url}}/post/",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"post",
+										""
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Create Post (401)",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Response status code is 401\", function () {",
+											"    pm.response.to.have.status(401);",
+											"});",
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "noauth"
+								},
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"title\": \"{{$randomCity}}\",\n    \"body\": \"{{$randomCity}}\",\n    \"response_to\": null\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{base_url}}/post/",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"post",
+										""
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Create Post (422)",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Response status code is 201\", function () {",
+											"    pm.response.to.have.status(201);",
+											"});",
+											"",
+											"// Saving the last post ID and role from the response:",
+											"const response = pm.response.json();",
+											"pm.collectionVariables.set(\"last_post_id\", response.id);",
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"title\": \"{{$randomCity}}\",\n    \"body\": \"{{$randomCity}}\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{base_url}}/post/",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"post",
+										""
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Read Posts",
+					"item": [
+						{
+							"name": "Read Posts (200)",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Response status code is 200\", function () {",
+											"    pm.response.to.have.status(200);",
+											"});",
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/post/",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"post",
+										""
+									],
+									"query": [
+										{
+											"key": "user_id",
+											"value": null,
+											"disabled": true
+										},
+										{
+											"key": "title",
+											"value": null,
+											"disabled": true
+										},
+										{
+											"key": "response_to",
+											"value": null,
+											"disabled": true
+										},
+										{
+											"key": "order_by",
+											"value": null,
+											"disabled": true
+										},
+										{
+											"key": "show_comments",
+											"value": null,
+											"disabled": true
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Read Posts (422)",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Response status code is 200\", function () {",
+											"    pm.response.to.have.status(200);",
+											"});",
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/post/?user_id=0",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"post",
+										""
+									],
+									"query": [
+										{
+											"key": "user_id",
+											"value": "0"
+										},
+										{
+											"key": "title",
+											"value": "",
+											"disabled": true
+										},
+										{
+											"key": "response_to",
+											"value": "",
+											"disabled": true
+										},
+										{
+											"key": "order_by",
+											"value": "",
+											"disabled": true
+										},
+										{
+											"key": "show_comments",
+											"value": "",
+											"disabled": true
+										}
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Update Post",
+					"item": [
+						{
+							"name": "Update Post (204)",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Response status code is 204\", function () {",
+											"    pm.response.to.have.status(204);",
+											"});"
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"method": "PUT",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"title\": \"{{$randomCity}}\",\n    \"body\": \"{{$randomCity}}\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{base_url}}/post/:post_id",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"post",
+										":post_id"
+									],
+									"variable": [
+										{
+											"key": "post_id",
+											"value": "{{last_post_id}}"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Update Post (401)",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Response status code is 401\", function () {",
+											"    pm.response.to.have.status(401);",
+											"});"
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "noauth"
+								},
+								"method": "PUT",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"title\": \"{{$randomCity}}\",\n    \"body\": \"{{$randomCity}}\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{base_url}}/post/:post_id",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"post",
+										":post_id"
+									],
+									"variable": [
+										{
+											"key": "post_id",
+											"value": "{{last_post_id}}"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Update Post (404)",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Response status code is 404\", function () {",
+											"    pm.response.to.have.status(404);",
+											"});"
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"method": "PUT",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"title\": \"{{$randomCity}}\",\n    \"body\": \"{{$randomCity}}\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{base_url}}/post/:post_id",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"post",
+										":post_id"
+									],
+									"variable": [
+										{
+											"key": "post_id",
+											"value": "0"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Update Post (422)",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Response status code is 422\", function () {",
+											"    pm.response.to.have.status(422);",
+											"});"
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"method": "PUT",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{base_url}}/post/:post_id",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"post",
+										":post_id"
+									],
+									"variable": [
+										{
+											"key": "post_id",
+											"value": "{{last_post_id}}"
+										}
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Create Post Image",
+					"item": [
+						{
+							"name": "Create Post Image (201)",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Response status code is 201\", function () {",
+											"  pm.expect(pm.response.to.have.status(201));",
+											"});",
+											"",
+											"const response = pm.response.json()",
+											"pm.collectionVariables.set(\"last_post_image_path\", response.path)"
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "formdata",
+									"formdata": [
+										{
+											"key": "image",
+											"type": "file",
+											"src": "/Users/erdem/Documents/GitHub/SocialApp/FastAPI/postman/data/appleton.jpeg"
+										}
+									]
+								},
+								"url": {
+									"raw": "{{base_url}}/post/:post_id/image/",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"post",
+										":post_id",
+										"image",
+										""
+									],
+									"variable": [
+										{
+											"key": "post_id",
+											"value": "{{last_post_id}}"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Create Post Image (401)",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Response status code is 401\", function () {",
+											"  pm.expect(pm.response.to.have.status(401));",
+											"});"
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "noauth"
+								},
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "formdata",
+									"formdata": [
+										{
+											"key": "image",
+											"type": "file",
+											"src": "/Users/erdem/Documents/GitHub/SocialApp/FastAPI/postman/data/appleton.jpeg"
+										}
+									]
+								},
+								"url": {
+									"raw": "{{base_url}}/post/:post_id/image/",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"post",
+										":post_id",
+										"image",
+										""
+									],
+									"variable": [
+										{
+											"key": "post_id",
+											"value": "{{last_post_id}}"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Create Post Image (422)",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Response status code is 422\", function () {",
+											"  pm.expect(pm.response.to.have.status(422));",
+											"});",
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "formdata",
+									"formdata": []
+								},
+								"url": {
+									"raw": "{{base_url}}/post/:post_id/image/",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"post",
+										":post_id",
+										"image",
+										""
+									],
+									"variable": [
+										{
+											"key": "post_id",
+											"value": "{{last_post_id}}"
+										}
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Read Post Images",
+					"item": [
+						{
+							"name": "Read Post Images (200)",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Response status code is 200\", function () {",
+											"    pm.response.to.have.status(200);",
+											"});",
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/post/:post_id/images",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"post",
+										":post_id",
+										"images"
+									],
+									"variable": [
+										{
+											"key": "post_id",
+											"value": "{{last_post_id}}"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Read Post Images (404)",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Response status code is 404\", function () {",
+											"    pm.response.to.have.status(404);",
+											"});",
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/post/:post_id/images",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"post",
+										":post_id",
+										"images"
+									],
+									"variable": [
+										{
+											"key": "post_id",
+											"value": "0"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Read Post Images (422)",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Response status code is 422\", function () {",
+											"    pm.response.to.have.status(422);",
+											"});",
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/post/:post_id/images",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"post",
+										":post_id",
+										"images"
+									],
+									"variable": [
+										{
+											"key": "post_id",
+											"value": ""
+										}
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Delete Post Image",
+					"item": [
+						{
+							"name": "Delete Post Image (204)",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Response status code is 204\", function () {",
+											"    pm.response.to.have.status(204);",
+											"});",
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"method": "DELETE",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/post/:post_id/image/:image_path",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"post",
+										":post_id",
+										"image",
+										":image_path"
+									],
+									"variable": [
+										{
+											"key": "post_id",
+											"value": "{{last_post_id}}"
+										},
+										{
+											"key": "image_path",
+											"value": "{{last_post_image_path}}"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Delete Post Image (401)",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Response status code is 401\", function () {",
+											"    pm.response.to.have.status(401);",
+											"});",
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "noauth"
+								},
+								"method": "DELETE",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/post/:post_id/image/:image_path",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"post",
+										":post_id",
+										"image",
+										":image_path"
+									],
+									"variable": [
+										{
+											"key": "post_id",
+											"value": "{{last_post_id}}"
+										},
+										{
+											"key": "image_path",
+											"value": "{{last_post_image_path}}"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Delete Post Image (404)",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Response status code is 404\", function () {",
+											"    pm.response.to.have.status(404);",
+											"});",
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"method": "DELETE",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/post/:post_id/image/:image_path",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"post",
+										":post_id",
+										"image",
+										":image_path"
+									],
+									"variable": [
+										{
+											"key": "post_id",
+											"value": "0"
+										},
+										{
+											"key": "image_path",
+											"value": "{{last_post_image_path}}"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Delete Post Image (422)",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Response status code is 422\", function () {",
+											"    pm.response.to.have.status(422);",
+											"});",
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"method": "DELETE",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/post/:post_id/image/:image_path",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"post",
+										":post_id",
+										"image",
+										":image_path"
+									],
+									"variable": [
+										{
+											"key": "post_id",
+											"value": ""
+										},
+										{
+											"key": "image_path",
+											"value": ""
+										}
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Vote",
+					"item": [
+						{
+							"name": "Vote (201)",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Response status code is 201\", function () {",
+											"    pm.response.to.have.status(201);",
+											"});"
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/post/:post_id/vote/?vote_type=up",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"post",
+										":post_id",
+										"vote",
+										""
+									],
+									"query": [
+										{
+											"key": "vote_type",
+											"value": "up"
+										}
+									],
+									"variable": [
+										{
+											"key": "post_id",
+											"value": "{{last_post_id}}"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Vote (401)",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Response status code is 401\", function () {",
+											"    pm.response.to.have.status(401);",
+											"});"
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "noauth"
+								},
+								"method": "POST",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/post/:post_id/vote/?vote_type=up",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"post",
+										":post_id",
+										"vote",
+										""
+									],
+									"query": [
+										{
+											"key": "vote_type",
+											"value": "up"
+										}
+									],
+									"variable": [
+										{
+											"key": "post_id",
+											"value": "{{last_post_id}}"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Vote (404)",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Response status code is 404\", function () {",
+											"    pm.response.to.have.status(404);",
+											"});"
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/post/:post_id/vote/?vote_type=up",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"post",
+										":post_id",
+										"vote",
+										""
+									],
+									"query": [
+										{
+											"key": "vote_type",
+											"value": "up"
+										}
+									],
+									"variable": [
+										{
+											"key": "post_id",
+											"value": "0"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Vote (422)",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Response status code is 422\", function () {",
+											"    pm.response.to.have.status(422);",
+											"});"
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/post/:post_id/vote/?vote_type=up",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"post",
+										":post_id",
+										"vote",
+										""
+									],
+									"query": [
+										{
+											"key": "vote_type",
+											"value": "up"
+										}
+									],
+									"variable": [
+										{
+											"key": "post_id",
+											"value": ""
+										}
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Delete Post",
+					"item": [
+						{
+							"name": "Delete Post (204)",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Response status code is 204\", function () {",
+											"    pm.response.to.have.status(204);",
+											"});",
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"method": "DELETE",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/post/:post_id",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"post",
+										":post_id"
+									],
+									"variable": [
+										{
+											"key": "post_id",
+											"value": "{{last_post_id}}"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Delete Post (401)",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Response status code is 401\", function () {",
+											"    pm.response.to.have.status(401);",
+											"});",
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "noauth"
+								},
+								"method": "DELETE",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/post/:post_id",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"post",
+										":post_id"
+									],
+									"variable": [
+										{
+											"key": "post_id",
+											"value": "{{last_post_id}}"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Delete Post (404)",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Response status code is 404\", function () {",
+											"    pm.response.to.have.status(404);",
+											"});",
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"method": "DELETE",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/post/:post_id",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"post",
+										":post_id"
+									],
+									"variable": [
+										{
+											"key": "post_id",
+											"value": "0"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Delete Post (422)",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Response status code is 422\", function () {",
+											"    pm.response.to.have.status(422);",
+											"});",
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"method": "DELETE",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/post/:post_id",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"post",
+										":post_id"
+									],
+									"variable": [
+										{
+											"key": "post_id",
+											"value": ""
+										}
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				}
+			],
+			"description": "Contains requests to endpoints in the post router"
+		},
+		{
+			"name": "Reset All Variables",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"// A dummy request to reset all environment and collection variable values, excluding the base URL:",
+							"",
+							"const col_vars = [",
+							"\"user_id\", \"name\", \"email\", \"password\", \"role\", \"profile_image_path\", \"last_post_id\", \"last_post_image_path\",",
+							"];",
+							"",
+							"const env_vars = [\"access_token\"];",
+							"",
+							"",
+							"for (let col_var of col_vars) {pm.collectionVariables.set(col_var, null);}",
+							"",
+							"for (let env_var of env_vars) {pm.environment.set(env_var, null);}",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "https://postman-echo.com/get",
+					"protocol": "https",
+					"host": [
+						"postman-echo",
+						"com"
+					],
+					"path": [
+						"get"
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"auth": {
+		"type": "bearer",
+		"bearer": [
+			{
+				"key": "token",
+				"value": "{{access_token}}",
+				"type": "string"
+			}
+		]
+	},
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "user_id",
+			"value": ""
+		},
+		{
+			"key": "name",
+			"value": ""
+		},
+		{
+			"key": "email",
+			"value": ""
+		},
+		{
+			"key": "password",
+			"value": ""
+		},
+		{
+			"key": "role",
+			"value": ""
+		},
+		{
+			"key": "profile_image_path",
+			"value": ""
+		},
+		{
+			"key": "last_post_id",
+			"value": ""
+		},
+		{
+			"key": "last_post_image_path",
+			"value": ""
+		}
+	]
+}

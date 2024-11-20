@@ -3,7 +3,7 @@ from starlette.requests import Request
 
 from main import app
 from services import user_service as us
-from schemas import CreateUserRequest, UserResponse, UpdateUserRequest, UpdateUserPasswordRequest, ImageResponse
+from schemas import CreateUserRequest, UserResponse, PrivateUserResponse, UpdateUserRequest, UpdateUserPasswordRequest, ImageResponse
 from dependencies import user_dependency, db_dependency
 
 
@@ -18,14 +18,20 @@ async def create_user(db: db_dependency, user_data: CreateUserRequest, request: 
     return us.create_user(db, user_data)
 
 
-@router.get("/", response_model=UserResponse, status_code=st.HTTP_200_OK)
-@app.state.limiter.limit("")
-async def read_user(user: user_dependency, request: Request):
+@router.get("/{user_id}", response_model=UserResponse, status_code=st.HTTP_200_OK)
+@app.state.limiter.limit("10/minute")
+async def read_user(db: db_dependency, request: Request, user_id: int = Path(ge=0)):
+    return us.get_user(db, user_id)
+
+
+@router.get("/", response_model=PrivateUserResponse, status_code=st.HTTP_200_OK)
+@app.state.limiter.limit("100/minute")
+async def read_current_user(user: user_dependency, request: Request):
     return user
 
 
 @router.put("/", status_code=st.HTTP_204_NO_CONTENT)
-@app.state.limiter.limit("")
+@app.state.limiter.limit("10/minute")
 async def update_user(db: db_dependency, user: user_dependency, user_data: UpdateUserRequest, request: Request):
     us.update_user(db, user, user_data)
 
@@ -37,19 +43,19 @@ async def update_user_password(db: db_dependency, user: user_dependency, passwor
 
 
 @router.post("/profile", response_model=ImageResponse, status_code=st.HTTP_200_OK)
-@app.state.limiter.limit("")
+@app.state.limiter.limit("5/minute")
 async def create_profile_image(db: db_dependency, user: user_dependency, request: Request, image: UploadFile = File(...)):
     return await us.create_profile_image(db, user, image)
 
 
 @router.get("/{user_id}/profile", response_model=ImageResponse, status_code=st.HTTP_200_OK)
-@app.state.limiter.limit("")
-async def read_profile_image(db: db_dependency, request: Request, user_id = Path(ge=0)):
+@app.state.limiter.limit("200/minute")
+async def read_profile_image(db: db_dependency, request: Request, user_id: int = Path(ge=0)):
     return us.read_profile_image(db, user_id)
 
 
 @router.delete("/profile", status_code=st.HTTP_204_NO_CONTENT)
-@app.state.limiter.limit("")
+@app.state.limiter.limit("5/minute")
 async def delete_profile_image(db: db_dependency, user: user_dependency, request: Request):
     us.delete_profile_image(db, user)
     

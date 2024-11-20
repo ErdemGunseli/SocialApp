@@ -1,4 +1,4 @@
-#!/Users/erdem/Documents/GitHub/SocialApp/FastAPI/venv/bin/python3.11
+#!/Users/erdem/Documents/GitHub/SocialApp/FastAPI/venv/bin/python3.12
 # -*- coding: utf-8 -*-
 import re
 import sys
